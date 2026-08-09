@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>واجهة التاجر - تعديل الثمن والتخفيض</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif}
+:root{--red:#e10600;--black:#111;--gold:#ffb400;--green:#00c851;--bg:#f5f5f7}
+body{background:var(--bg)}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;width:100%;max-width:400px;padding:35px;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,.1);text-align:center}
+.btn{padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer}.btn-red{background:var(--red);color:#fff;width:100%}
+.main{display:none}
+.header{background:var(--black);color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
+.content{padding:20px;max-width:1150px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.card{background:#fff;padding:16px;border-radius:14px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.panel{background:#fff;border-radius:14px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:18px}
+table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #eee;font-size:13px;text-align:right}
+.b-paid{background:#d4edda;color:#155724;padding:3px 8px;border-radius:20px;font-size:11px}
+.old-price{text-decoration:line-through;color:#999;font-size:12px;margin-left:6px}
+.new-price{color:var(--red);font-weight:800}
+.discount-badge{background:var(--red);color:#fff;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:800}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center}
+.modal.active{display:flex}
+.modal-box{background:#fff;width:95%;max-width:420px;padding:25px;border-radius:18px}
+.modal-box input{width:100%;padding:11px;border:2px solid #eee;border-radius:10px;margin:8px 0}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+</style>
+</head>
+<body>
+
+<div id="login" class="login-wrap">
+<div class="login-box">
+<div style="width:70px;height:70px;background:var(--red);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 15px"><i class="fa-solid fa-store" style="color:#fff;font-size:30px"></i></div>
+<h2>دخول التاجر</h2><p style="color:#888;margin-bottom:20px">Garage Allal</p>
+<input id="code" placeholder="الهاتف - 0612345678" style="width:100%;padding:13px;border:2px solid #eee;border-radius:12px;text-align:center;margin-bottom:10px">
+<button class="btn btn-red" onclick="login()">دخول <i class="fa-solid fa-arrow-left"></i></button>
+<div style="margin-top:15px;background:#fff3cd;padding:10px;border-radius:10px;font-size:11px;text-align:right">جرب: 0612345678 - أمين<br>0623456789 - حسن</div>
+</div>
+</div>
+
+<div id="main" class="main">
+<div class="header">
+<div><b id="mName"></b> - <span id="mShop" style="color:#aaa"></span> <span id="mDiscTotal" style="margin-right:10px"></span></div>
+<div><button onclick="logout()" style="background:#333;color:#fff;border:none;padding:6px 12px;border-radius:8px;cursor:pointer">خروج</button></div>
+</div>
+<div class="content">
+<div style="background:linear-gradient(135deg,var(--black),#333);color:#fff;padding:16px;border-radius:14px;margin-bottom:18px;display:flex;justify-content:space-between">
+<div><b id="subPlan"></b><div id="subDate" style="color:#aaa;font-size:12px"></div></div>
+<div><span id="mStatus"></span></div>
+</div>
+
+<div class="stats">
+<div class="card"><div><h3 id="st_clicks">0</h3><p style="font-size:12px;color:#777">نقرات</p></div><i class="fa-solid fa-mouse-pointer" style="color:var(--red)"></i></div>
+<div class="card"><div><h3 id="st_products">0</h3><p style="font-size:12px;color:#777">منتجاتي</p></div><i class="fa-solid fa-box" style="color:#004085"></i></div>
+<div class="card"><div><h3 id="st_sales" style="color:var(--green)">0 DH</h3><p style="font-size:12px;color:#777">قيمة التخفيضات</p></div><i class="fa-solid fa-tags" style="color:var(--gold)"></i></div>
+<div class="card"><div><h3 id="st_views">0</h3><p style="font-size:12px;color:#777">مشاهدات</p></div><i class="fa-solid fa-eye" style="color:#856404"></i></div>
+</div>
+
+<div class="panel">
+<h3><i class="fa-solid fa-plus" style="color:var(--red)"></i> إضافة منتج + تحديد تخفيض</h3>
+<div class="form-grid" style="margin-top:12px">
+<input id="p_name" placeholder="اسم المنتج *">
+<input id="p_price" placeholder="الثمن الأصلي * 4500">
+<input id="p_discount" placeholder="التخفيض % - مثلا 20" type="number" min="0" max="90">
+<input id="p_cat" placeholder="الفئة">
+</div>
+<div id="pricePreview" style="margin-top:10px;padding:10px;background:#f9f9f9;border-radius:10px;font-size:13px;display:none"></div>
+<button class="btn btn-red" style="margin-top:10px" onclick="addProd()">نشر المنتج</button>
+</div>
+
+<div class="panel">
+<h3><i class="fa-solid fa-pen-to-square"></i> منتجاتي - بدل الثمن ودير تخفيض</h3>
+<table><thead><tr><th>المنتج</th><th>الثمن</th><th>بعد التخفيض</th><th>النقرات</th><th>إجراءات</th></tr></thead><tbody id="myProducts"></tbody></table>
+</div>
+
+<div class="panel">
+<h3><i class="fa-solid fa-mouse-pointer"></i> زبنائي - النقرات</h3>
+<table><thead><tr><th>التاريخ</th><th>المنتج</th><th>النوع</th><th>المدينة</th></tr></thead><tbody id="myClicks"></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal">
+<div class="modal-box">
+<h3 style="margin-bottom:10px"><i class="fa-solid fa-pen"></i> تعديل المنتج</h3>
+<input type="hidden" id="editIndex">
+<input id="editName" placeholder="اسم المنتج">
+<input id="editPrice" placeholder="الثمن الأصلي" type="number">
+<input id="editDiscount" placeholder="نسبة التخفيض % - 0 الى 90" type="number" min="0" max="90">
+<div id="editPreview" style="padding:10px;background:#fff3cd;border-radius:10px;margin:8px 0;font-size:13px"></div>
+<div style="display:flex;gap:10px;margin-top:10px">
+<button class="btn btn-red" style="flex:1" onclick="saveEdit()">حفظ التعديل</button>
+<button class="btn" style="flex:1;background:#eee" onclick="closeModal()">إلغاء</button>
+</div>
+</div>
+</div>
+
+<script>
+let merchants=JSON.parse(localStorage.getItem('ga_merchants')||'[]');
+let clicks=JSON.parse(localStorage.getItem('ga_clicks')||'[]');
+let products=JSON.parse(localStorage.getItem('ga_products')||'[]');
+let current=null;
+
+function calcFinal(price,disc){let p=parseFloat(price)||0;let d=parseFloat(disc)||0;return Math.round(p - (p*d/100))}
+
+function login(){
+let code=document.getElementById('code').value.trim();
+let m=merchants.find(x=>x.phone.includes(code))||merchants[0];
+if(!m){m={name:'أمين - محل 12',shop:'محل أمين - درب غلف',phone:code,plan:'Premium',start:'2026-07-15',end:'2026-08-15',amount:'499 DH',status:'paid'};merchants.push(m);localStorage.setItem('ga_merchants',JSON.stringify(merchants))}
+current=m;localStorage.setItem('ga_current_merchant',JSON.stringify(m));
+document.getElementById('login').style.display='none';document.getElementById('main').style.display='block';load();
+}
+
+function load(){
+document.getElementById('mName').innerText=current.name;
+document.getElementById('mShop').innerText=current.shop;
+document.getElementById('subPlan').innerText=current.plan+' - '+current.amount;
+document.getElementById('subDate').innerText=current.start+' → '+current.end;
+let myClicks=clicks.filter(c=>current.name.includes(c.merchant)||c.merchant.includes(current.name.split(' ')[0]));
+let myProducts=products.filter(p=>current.name.includes(p.merchant)||p.merchant.includes(current.name.split(' ')[0])||p.merchant===current.name);
+document.getElementById('st_clicks').innerText=myClicks.length;
+document.getElementById('st_products').innerText=myProducts.length;
+document.getElementById('st_views').innerText=myProducts.reduce((s,p)=>s+(p.clicks||0),0)*3;
+let totalDisc=myProducts.reduce((s,p)=>{if(p.discount){return s+ (parseFloat(p.price||0)*parseFloat(p.discount||0)/100)}return s},0);
+document.getElementById('st_sales').innerText=Math.round(totalDisc)+' DH';
+document.getElementById('myClicks').innerHTML=myClicks.length?myClicks.slice().reverse().map(c=>`<tr><td>${c.date}</td><td>${c.product}</td><td>${c.type}</td><td>${c.city}</td></tr>`).join(''):`<tr><td colspan=4 style="text-align:center;color:#999">لا نقرات</td></tr>`;
+document.getElementById('myProducts').innerHTML=myProducts.length?myProducts.map((p,idx)=>{
+let realIdx=products.indexOf(p);
+let finalPrice=p.discount?calcFinal(p.price,p.discount):p.price;
+let priceHtml=p.discount?`<span class="old-price">${p.price} DH</span><span class="new-price">${finalPrice} DH</span> <span class="discount-badge">-${p.discount}%</span>`:`<b>${p.price} DH</b>`;
+let finalHtml=p.discount?`${finalPrice} DH`:`-`;
+return `<tr><td><b>${p.name}</b></td><td>${priceHtml}</td><td>${finalHtml}</td><td>${p.clicks||0}</td>
+<td style="display:flex;gap:5px">
+<button onclick="openEdit(${realIdx})" style="background:#cce5ff;border:none;padding:5px 9px;border-radius:6px;cursor:pointer"><i class="fa-solid fa-pen"></i> بدل</button>
+<button onclick="toggleDisc(${realIdx})" style="background:#fff3cd;border:none;padding:5px 9px;border-radius:6px;cursor:pointer"><i class="fa-solid fa-tag"></i> تخفيض</button>
+<button onclick="delProd(${realIdx})" style="background:#f8d7da;border:none;padding:5px 9px;border-radius:6px;cursor:pointer">X</button>
+</td></tr>`}).join(''):`<tr><td colspan=5 style="text-align:center;color:#999">لا منتجات</td></tr>`;
+}
+
+function addProd(){
+let name=document.getElementById('p_name').value,price=document.getElementById('p_price').value,discount=document.getElementById('p_discount').value;
+if(!name||!price){alert('الاسم والثمن ضروريان');return}
+products.push({name,price,discount:discount||0,merchant:current.name,clicks:0,category:document.getElementById('p_cat').value});
+localStorage.setItem('ga_products',JSON.stringify(products));
+document.getElementById('p_name').value='';document.getElementById('p_price').value='';document.getElementById('p_discount').value='';
+load();alert('تم النشر!'+(discount?' بتخفيض '+discount+'%':''));
+}
+
+function openEdit(idx){
+let p=products[idx];
+document.getElementById('editIndex').value=idx;
+document.getElementById('editName').value=p.name;
+document.getElementById('editPrice').value=parseFloat(p.price)||'';
+document.getElementById('editDiscount').value=p.discount||0;
+updateEditPreview();
+document.getElementById('editModal').classList.add('active');
+}
+function updateEditPreview(){
+let price=parseFloat(document.getElementById('editPrice').value)||0;
+let disc=parseFloat(document.getElementById('editDiscount').value)||0;
+let final=calcFinal(price,disc);
+document.getElementById('editPreview').innerHTML=disc>0?`الثمن الأصلي: <s>${price} DH</s><br>التخفيض: <b style="color:red">-${disc}%</b><br>الثمن الجديد: <b style="color:green;font-size:16px">${final} DH</b> (ربح الزبون ${price-final} DH)`:`الثمن: <b>${price} DH</b> (بدون تخفيض)`;
+}
+document.getElementById('editPrice').addEventListener('input',updateEditPreview);
+document.getElementById('editDiscount').addEventListener('input',updateEditPreview);
+document.getElementById('p_price').addEventListener('input',updateAddPreview);
+document.getElementById('p_discount').addEventListener('input',updateAddPreview);
+function updateAddPreview(){
+let price=parseFloat(document.getElementById('p_price').value)||0;
+let disc=parseFloat(document.getElementById('p_discount').value)||0;
+let el=document.getElementById('pricePreview');
+if(!price){el.style.display='none';return}
+let final=calcFinal(price,disc);
+el.style.display='block';
+el.innerHTML=disc>0?`سيظهر للزبون: <s>${price} DH</s> <b style="color:red">${final} DH</b> <span style="background:red;color:#fff;padding:2px 6px;border-radius:6px">-${disc}% OFF</span>`:`الثمن: ${price} DH`;
+}
+function saveEdit(){
+let idx=parseInt(document.getElementById('editIndex').value);
+products[idx].name=document.getElementById('editName').value;
+products[idx].price=document.getElementById('editPrice').value;
+products[idx].discount=document.getElementById('editDiscount').value||0;
+localStorage.setItem('ga_products',JSON.stringify(products));
+closeModal();load();alert('تم التعديل!');
+}
+function toggleDisc(idx){
+let cur=products[idx].discount||0;
+let newDisc=prompt('نسبة التخفيض % (0 لإلغاء التخفيض):',cur);
+if(newDisc!==null){products[idx].discount=parseFloat(newDisc)||0;localStorage.setItem('ga_products',JSON.stringify(products));load()}
+}
+function delProd(idx){if(confirm('تحذف؟')){products.splice(idx,1);localStorage.setItem('ga_products',JSON.stringify(products));load()}}
+function closeModal(){document.getElementById('editModal').classList.remove('active')}
+function logout(){localStorage.removeItem('ga_current_merchant');location.reload()}
+(function(){let s=localStorage.getItem('ga_current_merchant');if(s){current=JSON.parse(s);document.getElementById('login').style.display='none';document.getElementById('main').style.display='block';load()}})();
+</script>
+</body>
+</html>

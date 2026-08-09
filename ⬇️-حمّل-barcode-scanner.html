@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ماسح الباركود - Garage Allal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;400&display=swap" rel="stylesheet">
+<style>body{font-family:'Cairo',sans-serif} #reader video{border-radius:16px}</style>
+</head>
+<body class="bg-[#0F0F0F] text-white">
+<header class="bg-black border-b-2 border-yellow-400 p-4 text-center">
+<h1 class="text-xl font-bold text-yellow-400">📷 ماسح باركود جراج علال</h1>
+<p class="text-xs text-gray-400">امسح باركود المنتج باش تعرف الثمن والربح</p>
+</header>
+<div class="max-w-md mx-auto p-4 space-y-4">
+<div class="bg-zinc-900 rounded-2xl p-4">
+<div id="reader" class="rounded-2xl overflow-hidden bg-black min-h-[300px] flex items-center justify-center"><p class="text-gray-500">الكاميرا هنا 📷</p></div>
+<div class="grid grid-cols-2 gap-3 mt-4">
+<button onclick="start()" class="bg-yellow-400 text-black py-3 rounded-xl font-bold">▶️ تشغيل الكاميرا</button>
+<button onclick="stop()" class="bg-zinc-800 py-3 rounded-xl font-bold">⏹️ إيقاف</button>
+</div>
+<button onclick="simulate()" class="w-full mt-3 bg-zinc-800 py-3 rounded-xl text-sm">🎲 تجربة بدون كاميرا (PC bureau)</button>
+</div>
+<div id="result" class="hidden bg-zinc-900 rounded-2xl p-4 border-2 border-green-500">
+<h3 class="font-bold text-green-400 mb-2">✅ تم العثور على المنتج</h3>
+<div id="resultContent"></div>
+<div class="grid grid-cols-2 gap-3 mt-4">
+<div class="bg-black p-3 rounded-xl"><p class="text-xs text-gray-400">ثمن الشراء</p><p class="font-bold">4000 DH</p></div>
+<div class="bg-black p-3 rounded-xl"><p class="text-xs text-gray-400">ثمن البيع المقترح</p><p class="font-bold text-yellow-400">4500 DH</p></div>
+</div>
+<p class="mt-3 text-center text-green-400 font-bold">الربح: 500 DH (12.5%)</p>
+<button onclick="document.getElementById('result').classList.add('hidden')" class="w-full mt-3 bg-yellow-400 text-black py-3 rounded-xl font-bold">مسح منتج آخر</button>
+</div>
+<div class="bg-zinc-900 rounded-2xl p-4">
+<h3 class="font-bold text-sm mb-2">📦 آخر المنتجات الممسوحة</h3>
+<div class="space-y-2 text-sm">
+<div class="flex justify-between bg-black p-2 rounded-xl"><span>8801643877764 - iPhone 13</span><span class="text-green-400">✅</span></div>
+<div class="flex justify-between bg-black p-2 rounded-xl"><span>8801643877765 - Samsung S22</span><span class="text-green-400">✅</span></div>
+</div>
+</div>
+</div>
+<script>
+let html5QrCode;
+function start(){
+html5QrCode = new Html5Qrcode("reader");
+html5QrCode.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},
+(text)=>{
+showResult(text);
+html5QrCode.stop();
+},(err)=>{}).catch(e=>{alert("الكاميرا ما خداماش فالبيسي - استعمل زر تجربة بدون كاميرا");});
+}
+function stop(){ if(html5QrCode) html5QrCode.stop(); }
+function simulate(){ showResult("8801643877764"); }
+function showResult(code){
+document.getElementById('result').classList.remove('hidden');
+document.getElementById('resultContent').innerHTML = `
+<p><span class="text-gray-400">باركود:</span> <span class="font-mono text-yellow-400">${code}</span></p>
+<p class="mt-1"><span class="text-gray-400">المنتج:</span> iPhone 13 128GB - مستعمل نقي</p>
+<p class="mt-1"><span class="text-gray-400">التاجر:</span> محل أمين للهواتف (طابق 1 - محل 45) ⭐</p>
+`;
+window.scrollTo(0,document.body.scrollHeight);
+}
+</script>
+</body>
+</html>
